@@ -1,4 +1,4 @@
-import React, { useState, useEffect, KeyboardEvent } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
 import { Grid, Paper, Button } from "@material-ui/core";
 
@@ -8,7 +8,7 @@ const useStyles = makeStyles((theme: Theme) =>
       flexGrow: 1,
     },
     paper: {
-      padding: theme.spacing(1),
+      padding: theme.spacing(2),
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -18,14 +18,18 @@ const useStyles = makeStyles((theme: Theme) =>
       backgroundColor: "#D3D3D3",
     },
     board: {
-      paddingLeft: "10rem",
-      paddingRight: "10rem",
+      paddingLeft: "5rem",
+      paddingRight: "5rem",
       display: "flex",
+      flexDirection: "column",
       margin: "auto",
       backgroundColor: "#DCDCDC",
     },
     buttoncontainer: {
       marginTop: "2rem",
+    },
+    gridrow: {
+      display: "flex",
     },
   })
 );
@@ -43,16 +47,13 @@ const Board = () => {
     [0, 0, 0, 0],
   ]);
 
-  const gameStartState = () => {
-    setGameStarted((prev) => !prev);
-    //spawn first 2 tiles
+  const spawnNewValueToBoard = () => {
     let spawnValueCopy = spawnValue;
     if (spawnValueCopy !== undefined) {
       spawnValueCopy[0] = Math.random() >= 0.5 ? 2 : 4;
       spawnValueCopy[1] = Math.random() >= 0.5 ? 2 : 4;
     }
-    setSpawnValue(spawnValueCopy);
-
+    setSpawnValue(spawnValueCopy); // reset copy?
     // add new grid to board by replacing previous
     let gridCopy: number[][] = [...gridInBoard];
     spawnValue?.forEach((newValue: number) => {
@@ -68,9 +69,16 @@ const Board = () => {
     setGridInBoard(gridCopy);
   };
 
+  const gameStartState = () => {
+    setGameStarted((prev) => !prev);
+    spawnNewValueToBoard();
+  };
+  // down arrow and up arrow key down
+  const columnManipulation = (column: number[]) => {};
+
   const onArrowKeyDownPressed = (event: globalThis.KeyboardEvent) => {
     let boardCopy: number[][] = [...gridInBoard];
-    console.log(boardCopy);
+
     switch (event.key) {
       case "ArrowDown":
         console.log("down");
@@ -82,9 +90,9 @@ const Board = () => {
         console.log("right");
         // Problem moving in column instead
         boardCopy.forEach((row, i) => {
-          boardCopy[i] = row.sort();
+          boardCopy[i] = row.sort(); // cover more cases
         });
-        console.log(boardCopy);
+        spawnNewValueToBoard();
 
         break;
       case "ArrowLeft":
@@ -104,14 +112,23 @@ const Board = () => {
   }, [gameStarted]);
 
   /* Create Board UI */
+  /* 
+     0  0  0  0
+     ----------
+     0  0  0  0
+     ----------
+     0  0  0  0
+     ----------
+     0  0  0  0 
+  */
   const createBoard = () => {
     return (
       <div className={classes.board}>
-        {gridInBoard.map((gridrow, i) => (
-          <Grid item xs={3} key={i}>
-            {gridrow.map((gridcolumn, i) => (
-              <Paper className={classes.paper} key={i}>
-                <div>{gridcolumn}</div>
+        {gridInBoard.map((row, i) => (
+          <Grid item key={i} className={classes.gridrow}>
+            {row.map((column, i) => (
+              <Paper className={classes.paper} key={i + 1}>
+                <div>{column}</div>
               </Paper>
             ))}
           </Grid>
