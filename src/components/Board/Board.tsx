@@ -53,14 +53,16 @@ const Board = () => {
       spawnValueCopy[0] = Math.random() >= 0.5 ? 2 : 4;
       spawnValueCopy[1] = Math.random() >= 0.5 ? 2 : 4;
     }
-    setSpawnValue(spawnValueCopy); // reset copy?
-    // add new grid to board by replacing previous
+    setSpawnValue(spawnValueCopy);
+
     let gridCopy: number[][] = [...gridInBoard];
     spawnValue?.forEach((newValue: number) => {
-      let rowFirstGrid = Math.floor(Math.random() * 4); // exclude 4?
-      let columnFirstGrid = Math.floor(Math.random() * 4);
+      const rowFirstGrid =
+        Math.floor(Math.random() * 4) === 4 ? 3 : Math.floor(Math.random() * 4); // if 4 return 3 else return random number
+      const columnFirstGrid =
+        Math.floor(Math.random() * 4) === 4 ? 3 : Math.floor(Math.random() * 4);
       let gridIsZero = gridCopy[rowFirstGrid][columnFirstGrid] === 0;
-      //pick new random grid if exists create function? by passing in the grid as value to return new randomvalue
+
       if (gridIsZero) {
         console.log("grid is zero");
         gridCopy[rowFirstGrid][columnFirstGrid] = newValue;
@@ -73,8 +75,52 @@ const Board = () => {
     setGameStarted((prev) => !prev);
     spawnNewValueToBoard();
   };
-  // down arrow and up arrow key down
-  const columnManipulation = (column: number[]) => {};
+
+  const shiftRowRight = (array: number[]) => {
+    array.sort((secondNumber: number, firstNumber: number) => {
+      if (firstNumber > secondNumber && secondNumber === 0) return -1;
+      else return 0;
+    });
+  };
+
+  const shiftColumnDown = (array: number[][]) => {
+    const transposedBoard: number[][] = transposeArray(array);
+    transposedBoard?.forEach((row) => {
+      shiftRowRight(row);
+      compressRowRight(row);
+      shiftRowRight(row);
+    });
+    //console.log(transposedBoard);
+    return transposedBoard;
+  };
+
+  const transposeArray = (array: number[][]) => {
+    const transposedBoard: number[][] = array[0].map(
+      (_num: number, colIndex: number) => {
+        return array.map((row: number[]) => {
+          return row[colIndex];
+        });
+      }
+    );
+    return transposedBoard;
+  };
+
+  const compressRowRight = (array: number[]) => {
+    array.reduce(
+      (
+        firstNumber: number,
+        secondNumber: number,
+        currentIndex: number,
+        array: number[]
+      ) => {
+        if (firstNumber === secondNumber) {
+          array[currentIndex] = firstNumber + secondNumber;
+          array[currentIndex - 1] = 0;
+          return secondNumber;
+        } else return secondNumber;
+      }
+    );
+  };
 
   const onArrowKeyDownPressed = (event: globalThis.KeyboardEvent) => {
     let boardCopy: number[][] = [...gridInBoard];
@@ -82,18 +128,24 @@ const Board = () => {
     switch (event.key) {
       case "ArrowDown":
         console.log("down");
+        const sortedColumn: number[][] = shiftColumnDown(boardCopy);
+        boardCopy = transposeArray(sortedColumn);
+        console.log(boardCopy);
+        setGridInBoard(boardCopy); // dom isnt updating...
+        spawnNewValueToBoard();
         break;
       case "ArrowUp":
         console.log("up");
         break;
       case "ArrowRight":
-        console.log("right");
-        // Problem moving in column instead
-        boardCopy.forEach((row, i) => {
-          boardCopy[i] = row.sort(); // cover more cases
+        //console.log("right");
+        boardCopy.forEach((row) => {
+          shiftRowRight(row);
+          compressRowRight(row);
+          shiftRowRight(row);
         });
+        setGridInBoard(boardCopy);
         spawnNewValueToBoard();
-
         break;
       case "ArrowLeft":
         console.log("left");
@@ -101,7 +153,6 @@ const Board = () => {
       default:
         break;
     }
-    setGridInBoard(boardCopy);
   };
 
   useEffect(() => {
