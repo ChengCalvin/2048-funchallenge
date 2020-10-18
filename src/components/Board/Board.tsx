@@ -36,8 +36,8 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const Board = () => {
   const classes = useStyles();
-  let [gameStarted, setGameStarted] = useState<boolean | undefined>(false);
-  let [spawnValue, setSpawnValue] = useState<number[] | undefined>([0]);
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [spawnValue, setSpawnValue] = useState<number[]>([0, 0]);
 
   /* Create grid */
   let [gridInBoard, setGridInBoard] = useState<number[][]>([
@@ -48,12 +48,17 @@ const Board = () => {
   ]);
 
   const spawnNewValueToBoard = () => {
-    let spawnValueCopy = spawnValue;
-    if (spawnValueCopy !== undefined) {
-      spawnValueCopy[0] = Math.random() >= 0.5 ? 2 : 4;
-      spawnValueCopy[1] = Math.random() >= 0.5 ? 2 : 4;
-    }
-    setSpawnValue(spawnValueCopy);
+    const randomValue = [
+      Math.random() >= 0.5 ? 2 : 4,
+      Math.random() >= 0.5 ? 2 : 4,
+    ];
+
+    const spawnValueCopy: number[] = spawnValue.map((_value, valueIndex) => {
+      return randomValue[valueIndex];
+    }); // this works expected [randomVal, randomVal]
+    console.log(spawnValueCopy);
+    setSpawnValue(spawnValueCopy); //this does not happen, unable to update due to const...
+    console.log(spawnValue); // output [0,0] as expected line 40
 
     let gridCopy: number[][] = [...gridInBoard];
     spawnValue?.forEach((newValue: number) => {
@@ -72,7 +77,9 @@ const Board = () => {
   };
 
   const gameStartState = () => {
+    //game is always false since it is set at the beginning.
     setGameStarted((prev) => !prev);
+    console.log(gameStarted); // game started is false...
     spawnNewValueToBoard();
   };
 
@@ -130,13 +137,14 @@ const Board = () => {
         console.log("down");
         const sortedColumn: number[][] = shiftColumnDown(boardCopy);
         boardCopy = transposeArray(sortedColumn);
-        console.log(boardCopy);
-        setGridInBoard(boardCopy); // dom isnt updating...
-        spawnNewValueToBoard();
-        break;
+        return boardCopy;
+      //setGridInBoard(boardCopy); // dom isnt updating... need return?
+      //spawnNewValueToBoard();
+      //break;
       case "ArrowUp":
         console.log("up");
-        break;
+        return boardCopy;
+      //break;
       case "ArrowRight":
         //console.log("right");
         boardCopy.forEach((row) => {
@@ -144,21 +152,28 @@ const Board = () => {
           compressRowRight(row);
           shiftRowRight(row);
         });
-        setGridInBoard(boardCopy);
-        spawnNewValueToBoard();
-        break;
+        return boardCopy;
+      //setGridInBoard(boardCopy);
+      //spawnNewValueToBoard();
+      //break;
       case "ArrowLeft":
         console.log("left");
-        break;
+        return boardCopy;
+      //break;
       default:
-        break;
+        return boardCopy;
+      //break;
     }
   };
 
   useEffect(() => {
     if (gameStarted)
       window.addEventListener("keydown", (event) => {
-        onArrowKeyDownPressed(event);
+        const newBoardState: number[][] = onArrowKeyDownPressed(event);
+        console.log(newBoardState);
+        setGridInBoard(newBoardState);
+        console.log(gridInBoard);
+        spawnNewValueToBoard();
       });
   }, [gameStarted]);
 
