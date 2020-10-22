@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
 import { Grid, Paper, Button } from "@material-ui/core";
 
@@ -39,13 +39,13 @@ const Board = () => {
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [spawnValue, setSpawnValue] = useState<number[]>([0, 0]);
 
+  const emptyBoard = Array(4)
+    .fill([0, 0, 0, 0])
+    .map((board) => [...board]);
+
   /* Create grid */
-  let [gridInBoard, setGridInBoard] = useState<number[][]>([
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-  ]);
+  const [gridInBoard, setGridInBoard] = useState<number[][]>(emptyBoard);
+  const emptyBoardRef = useRef(emptyBoard);
 
   const spawnNewValueToBoard = () => {
     const randomValue = [
@@ -53,34 +53,37 @@ const Board = () => {
       Math.random() >= 0.5 ? 2 : 4,
     ];
 
-    const spawnValueCopy: number[] = spawnValue.map((_value, valueIndex) => {
-      return randomValue[valueIndex];
-    }); // this works expected [randomVal, randomVal]
-    console.log(spawnValueCopy);
-    setSpawnValue(spawnValueCopy); //this does not happen, unable to update due to const...
-    console.log(spawnValue); // output [0,0] as expected line 40
+    setSpawnValue(randomValue);
+  };
 
-    let gridCopy: number[][] = [...gridInBoard];
-    spawnValue?.forEach((newValue: number) => {
-      const rowFirstGrid =
-        Math.floor(Math.random() * 4) === 4 ? 3 : Math.floor(Math.random() * 4); // if 4 return 3 else return random number
-      const columnFirstGrid =
-        Math.floor(Math.random() * 4) === 4 ? 3 : Math.floor(Math.random() * 4);
-      let gridIsZero = gridCopy[rowFirstGrid][columnFirstGrid] === 0;
+  const drawNewBoardValue = (board: number[][]) => {
+    console.log("before new value spawned", board);
 
-      if (gridIsZero) {
-        console.log("grid is zero");
-        gridCopy[rowFirstGrid][columnFirstGrid] = newValue;
-      }
+    const newRow = Math.floor(Math.random() * 4);
+    const newColumn = Math.floor(Math.random() * 4);
+    const newRow2 = Math.floor(Math.random() * 4);
+    const newColumn2 = Math.floor(Math.random() * 4);
+    const gridIsZero = board[newRow][newColumn] === 0;
+
+    const boardCopy: number[][] = board.map((row, rowIndex) => {
+      return row.map((_value, colIndex) => {
+        if (rowIndex === newRow && colIndex === newColumn && gridIsZero) {
+          return spawnValue[0];
+        } else if (
+          rowIndex === newRow2 &&
+          colIndex === newColumn2 &&
+          gridIsZero
+        ) {
+          return spawnValue[1];
+        } else return board[rowIndex][colIndex];
+      });
     });
-    setGridInBoard(gridCopy);
+    emptyBoardRef.current = boardCopy;
+    setGridInBoard(boardCopy); // wrong approach...
   };
 
   const gameStartState = () => {
-    //game is always false since it is set at the beginning.
-    setGameStarted((prev) => !prev);
-    console.log(gameStarted); // game started is false...
-    spawnNewValueToBoard();
+    setGameStarted(true);
   };
 
   const shiftRowRight = (array: number[]) => {
@@ -97,8 +100,8 @@ const Board = () => {
       compressRowRight(row);
       shiftRowRight(row);
     });
-    //console.log(transposedBoard);
-    return transposedBoard;
+    const updatedSortedCol: number[][] = transposeArray(transposedBoard);
+    return updatedSortedCol; // not drawing on board
   };
 
   const transposeArray = (array: number[][]) => {
@@ -130,52 +133,57 @@ const Board = () => {
   };
 
   const onArrowKeyDownPressed = (event: globalThis.KeyboardEvent) => {
-    let boardCopy: number[][] = [...gridInBoard];
-
+    //const boardCopy: number[][] = [...gridInBoard];
+    console.log("grid before arrow key pressed", emptyBoardRef.current); // how to get next state?
     switch (event.key) {
       case "ArrowDown":
         console.log("down");
-        const sortedColumn: number[][] = shiftColumnDown(boardCopy);
-        boardCopy = transposeArray(sortedColumn);
-        return boardCopy;
-      //setGridInBoard(boardCopy); // dom isnt updating... need return?
-      //spawnNewValueToBoard();
-      //break;
+        const shiftedColumn: number[][] = shiftColumnDown(
+          emptyBoardRef.current
+        );
+        //emptyBoardRef.current = shiftedColumn;
+        setGridInBoard(shiftedColumn);
+        spawnNewValueToBoard();
+        drawNewBoardValue(shiftedColumn);
+        break;
       case "ArrowUp":
         console.log("up");
-        return boardCopy;
-      //break;
+        break;
       case "ArrowRight":
         //console.log("right");
-        boardCopy.forEach((row) => {
+        //gridInBoard is always 0, need to get the updated state...
+        const boardCopy: number[][] = emptyBoardRef.current.map((row) => {
           shiftRowRight(row);
           compressRowRight(row);
           shiftRowRight(row);
+          return row;
         });
-        return boardCopy;
-      //setGridInBoard(boardCopy);
-      //spawnNewValueToBoard();
-      //break;
+        console.log("boardCopy after sorting", boardCopy);
+        spawnNewValueToBoard(); // generate 2 new values | spawnValue = [x, y]
+        drawNewBoardValue(boardCopy); // add 2 random value on tile = 0 and set new Board state
+
+        break;
       case "ArrowLeft":
         console.log("left");
-        return boardCopy;
-      //break;
+        break;
       default:
-        return boardCopy;
-      //break;
+        break;
     }
   };
 
   useEffect(() => {
-    if (gameStarted)
+    if (gameStarted) {
       window.addEventListener("keydown", (event) => {
-        const newBoardState: number[][] = onArrowKeyDownPressed(event);
-        console.log(newBoardState);
-        setGridInBoard(newBoardState);
-        console.log(gridInBoard);
-        spawnNewValueToBoard();
+        onArrowKeyDownPressed(event);
       });
+    }
+    spawnNewValueToBoard();
+    drawNewBoardValue(emptyBoardRef.current);
   }, [gameStarted]);
+
+  useEffect(() => {
+    console.log("current grid state", emptyBoardRef.current);
+  }, [gridInBoard]);
 
   /* Create Board UI */
   /* 
