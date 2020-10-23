@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
 import { Grid, Paper, Button } from "@material-ui/core";
 
@@ -37,7 +37,6 @@ const useStyles = makeStyles((theme: Theme) =>
 const Board = () => {
   const classes = useStyles();
   const [gameStarted, setGameStarted] = useState<boolean>(false);
-  const [spawnValue, setSpawnValue] = useState<number[]>([0, 0]);
 
   const emptyBoard = Array(4)
     .fill([0, 0, 0, 0])
@@ -45,7 +44,6 @@ const Board = () => {
 
   /* Create grid */
   const [gridInBoard, setGridInBoard] = useState<number[][]>(emptyBoard);
-  const emptyBoardRef = useRef(emptyBoard);
 
   const spawnNewValueToBoard = () => {
     const randomValue = [
@@ -53,11 +51,11 @@ const Board = () => {
       Math.random() >= 0.5 ? 2 : 4,
     ];
 
-    setSpawnValue(randomValue);
+    return randomValue;
   };
 
   const drawNewBoardValue = (board: number[][]) => {
-    console.log("before new value spawned", board);
+    const spawnValue = spawnNewValueToBoard();
 
     const newRow = Math.floor(Math.random() * 4);
     const newColumn = Math.floor(Math.random() * 4);
@@ -74,16 +72,19 @@ const Board = () => {
           colIndex === newColumn2 &&
           gridIsZero
         ) {
+          //console.log("this is happening");
           return spawnValue[1];
         } else return board[rowIndex][colIndex];
       });
     });
-    emptyBoardRef.current = boardCopy;
-    setGridInBoard(boardCopy); // wrong approach...
+
+    setGridInBoard([...boardCopy]);
   };
 
   const gameStartState = () => {
     setGameStarted(true);
+    spawnNewValueToBoard();
+    drawNewBoardValue(gridInBoard);
   };
 
   const shiftRowRight = (array: number[]) => {
@@ -133,39 +134,32 @@ const Board = () => {
   };
 
   const onArrowKeyDownPressed = (event: globalThis.KeyboardEvent) => {
-    //const boardCopy: number[][] = [...gridInBoard];
-    console.log("grid before arrow key pressed", emptyBoardRef.current); // how to get next state?
     switch (event.key) {
       case "ArrowDown":
-        console.log("down");
-        const shiftedColumn: number[][] = shiftColumnDown(
-          emptyBoardRef.current
-        );
-        //emptyBoardRef.current = shiftedColumn;
-        setGridInBoard(shiftedColumn);
+        const shiftedColumn: number[][] = shiftColumnDown(gridInBoard);
         spawnNewValueToBoard();
         drawNewBoardValue(shiftedColumn);
         break;
+
       case "ArrowUp":
         console.log("up");
         break;
+
       case "ArrowRight":
-        //console.log("right");
-        //gridInBoard is always 0, need to get the updated state...
-        const boardCopy: number[][] = emptyBoardRef.current.map((row) => {
+        const boardCopy: number[][] = gridInBoard.map((row) => {
           shiftRowRight(row);
           compressRowRight(row);
           shiftRowRight(row);
           return row;
         });
-        console.log("boardCopy after sorting", boardCopy);
-        spawnNewValueToBoard(); // generate 2 new values | spawnValue = [x, y]
-        drawNewBoardValue(boardCopy); // add 2 random value on tile = 0 and set new Board state
-
+        spawnNewValueToBoard();
+        drawNewBoardValue(boardCopy);
         break;
+
       case "ArrowLeft":
         console.log("left");
         break;
+
       default:
         break;
     }
@@ -173,16 +167,11 @@ const Board = () => {
 
   useEffect(() => {
     if (gameStarted) {
-      window.addEventListener("keydown", (event) => {
-        onArrowKeyDownPressed(event);
-      });
+      window.addEventListener("keydown", onArrowKeyDownPressed);
+      return () => {
+        window.removeEventListener("keydown", onArrowKeyDownPressed);
+      };
     }
-    spawnNewValueToBoard();
-    drawNewBoardValue(emptyBoardRef.current);
-  }, [gameStarted]);
-
-  useEffect(() => {
-    console.log("current grid state", emptyBoardRef.current);
   }, [gridInBoard]);
 
   /* Create Board UI */
