@@ -88,7 +88,6 @@ const Board = () => {
     });
 
     const randomTwoGrid: number[][] = getRandomEmptyGrid(gridRowColValues);
-    console.log("retrieve 2 empty grid: ", randomTwoGrid);
 
     const boardCopy: number[][] = board.map((row, rowIndex) => {
       return row.map((_value, colIndex) => {
