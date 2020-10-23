@@ -54,29 +54,52 @@ const Board = () => {
     return randomValue;
   };
 
+  const getRandomEmptyGrid = (gridRowColValues: number[][][]) => {
+    const totalEmptyGrid: number[][] = [
+      ...gridRowColValues[0],
+      ...gridRowColValues[1],
+      ...gridRowColValues[2],
+      ...gridRowColValues[3],
+    ];
+    const randomNumber1 = Math.floor(Math.random() * totalEmptyGrid.length);
+    const gridOne: number[] = totalEmptyGrid[randomNumber1];
+    const gridOneRemoved: number[][] = totalEmptyGrid
+      .map((rowColPairs) => {
+        return rowColPairs;
+      })
+      .filter((grid) => grid !== gridOne);
+
+    const randomNumber2 = Math.floor(Math.random() * gridOneRemoved.length);
+    const gridTwo: number[] = gridOneRemoved[randomNumber2];
+
+    return [gridOne, gridTwo];
+  };
+
   const drawNewBoardValue = (board: number[][]) => {
     const spawnValue = spawnNewValueToBoard();
 
-    const newRow = Math.floor(Math.random() * 4);
-    const newColumn = Math.floor(Math.random() * 4);
-    const newRow2 = Math.floor(Math.random() * 4);
-    const newColumn2 = Math.floor(Math.random() * 4);
-    // const gridRowColValues: number[][] | null = board.map((row, rowIndex) => {
-    //   return row.map((value, colIndex) => {
-    //     if (value === 0) return [rowIndex, colIndex];
-    //     else return;
-    //   });
-    // });
-    const gridIsZero = board[newRow][newColumn] === 0;
+    const gridRowColValues: number[][][] = board.map((row, rowIndex) => {
+      return row
+        .map((value, colIndex) => {
+          if (value === 0) return [rowIndex, colIndex];
+          else return [];
+        })
+        .filter((rowColPair) => rowColPair);
+    });
+
+    const randomTwoGrid: number[][] = getRandomEmptyGrid(gridRowColValues);
+    console.log("retrieve 2 empty grid: ", randomTwoGrid);
 
     const boardCopy: number[][] = board.map((row, rowIndex) => {
       return row.map((_value, colIndex) => {
-        if (rowIndex === newRow && colIndex === newColumn && gridIsZero) {
+        if (
+          rowIndex === randomTwoGrid[0][0] &&
+          colIndex === randomTwoGrid[0][1]
+        ) {
           return spawnValue[0];
         } else if (
-          rowIndex === newRow2 &&
-          colIndex === newColumn2 &&
-          gridIsZero
+          rowIndex === randomTwoGrid[1][0] &&
+          colIndex === randomTwoGrid[1][1]
         ) {
           //console.log("this is happening");
           return spawnValue[1];
