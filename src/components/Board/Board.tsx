@@ -61,6 +61,12 @@ const Board = () => {
     const newColumn = Math.floor(Math.random() * 4);
     const newRow2 = Math.floor(Math.random() * 4);
     const newColumn2 = Math.floor(Math.random() * 4);
+    // const gridRowColValues: number[][] | null = board.map((row, rowIndex) => {
+    //   return row.map((value, colIndex) => {
+    //     if (value === 0) return [rowIndex, colIndex];
+    //     else return;
+    //   });
+    // });
     const gridIsZero = board[newRow][newColumn] === 0;
 
     const boardCopy: number[][] = board.map((row, rowIndex) => {
@@ -103,13 +109,26 @@ const Board = () => {
 
   const shiftColumnDown = (array: number[][]) => {
     const transposedBoard: number[][] = transposeArray(array);
-    transposedBoard?.forEach((row) => {
+    const sortedBoard = transposedBoard?.map((row) => {
       shiftRowRight(row);
       compressRowRight(row);
       shiftRowRight(row);
+      return row;
     });
-    const updatedSortedCol: number[][] = transposeArray(transposedBoard);
-    return updatedSortedCol; // not drawing on board
+    const updatedSortedCol: number[][] = transposeArray(sortedBoard);
+    return updatedSortedCol;
+  };
+
+  const shiftColumnUp = (array: number[][]) => {
+    const transposedBoard: number[][] = transposeArray(array);
+    const sortedBoard = transposedBoard?.map((row) => {
+      shiftRowLeft(row);
+      compressRowLeft(row);
+      shiftRowLeft(row);
+      return row;
+    });
+    const updatedSortedCol: number[][] = transposeArray(sortedBoard);
+    return updatedSortedCol;
   };
 
   const transposeArray = (array: number[][]) => {
@@ -160,36 +179,32 @@ const Board = () => {
   const onArrowKeyDownPressed = (event: globalThis.KeyboardEvent) => {
     switch (event.key) {
       case "ArrowDown":
-        const shiftedColumn: number[][] = shiftColumnDown(gridInBoard);
-        spawnNewValueToBoard();
-        drawNewBoardValue(shiftedColumn);
+        const shiftedColumnDown: number[][] = shiftColumnDown(gridInBoard);
+        drawNewBoardValue(shiftedColumnDown);
         break;
 
       case "ArrowUp":
-        console.log("up");
+        const shiftedColumnUp: number[][] = shiftColumnUp(gridInBoard);
+        drawNewBoardValue(shiftedColumnUp);
         break;
 
       case "ArrowRight":
-        const boardCopy: number[][] = gridInBoard.map((row) => {
+        const boardCopyRight: number[][] = gridInBoard.map((row) => {
           shiftRowRight(row);
           compressRowRight(row);
           shiftRowRight(row);
           return row;
         });
-        spawnNewValueToBoard();
-        drawNewBoardValue(boardCopy);
+        drawNewBoardValue(boardCopyRight);
         break;
 
       case "ArrowLeft":
-        console.log("left");
         const boardCopyLeft: number[][] = gridInBoard.map((row) => {
           shiftRowLeft(row);
           compressRowLeft(row);
           shiftRowLeft(row);
           return row;
         });
-        console.log(boardCopyLeft);
-        spawnNewValueToBoard();
         drawNewBoardValue(boardCopyLeft);
         break;
 
