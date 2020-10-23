@@ -94,6 +94,13 @@ const Board = () => {
     });
   };
 
+  const shiftRowLeft = (array: number[]) => {
+    array.sort((secondNumber: number, firstNumber: number) => {
+      if (secondNumber > firstNumber && firstNumber === 0) return -1;
+      else return 0;
+    });
+  };
+
   const shiftColumnDown = (array: number[][]) => {
     const transposedBoard: number[][] = transposeArray(array);
     transposedBoard?.forEach((row) => {
@@ -133,6 +140,23 @@ const Board = () => {
     );
   };
 
+  const compressRowLeft = (array: number[]) => {
+    array.reduce(
+      (
+        firstNumber: number,
+        secondNumber: number,
+        currentIndex: number,
+        array: number[]
+      ) => {
+        if (firstNumber === secondNumber) {
+          array[currentIndex] = firstNumber + secondNumber;
+          array[currentIndex - 1] = 0;
+          return firstNumber;
+        } else return firstNumber;
+      }
+    );
+  };
+
   const onArrowKeyDownPressed = (event: globalThis.KeyboardEvent) => {
     switch (event.key) {
       case "ArrowDown":
@@ -158,6 +182,15 @@ const Board = () => {
 
       case "ArrowLeft":
         console.log("left");
+        const boardCopyLeft: number[][] = gridInBoard.map((row) => {
+          shiftRowLeft(row);
+          compressRowLeft(row);
+          shiftRowLeft(row);
+          return row;
+        });
+        console.log(boardCopyLeft);
+        spawnNewValueToBoard();
+        drawNewBoardValue(boardCopyLeft);
         break;
 
       default:
