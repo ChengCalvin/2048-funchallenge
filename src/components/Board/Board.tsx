@@ -87,6 +87,11 @@ const Board = () => {
         .filter((rowColPair) => rowColPair);
     });
 
+    const gameEnded = gridRowColValues.length === 0;
+    if (gameEnded) {
+      setGameStarted(false);
+    }
+
     const randomTwoGrid: number[][] = getRandomEmptyGrid(gridRowColValues);
 
     const boardCopy: number[][] = board.map((row, rowIndex) => {
