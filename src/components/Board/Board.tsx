@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
-import { Grid, Paper, Button } from "@material-ui/core";
+import { Grid, Paper, Button, rgbToHex } from "@material-ui/core";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -15,7 +15,6 @@ const useStyles = makeStyles((theme: Theme) =>
       color: theme.palette.text.secondary,
       width: "5rem",
       height: "5rem",
-      backgroundColor: "#D3D3D3",
     },
     board: {
       paddingLeft: "5rem",
@@ -105,7 +104,6 @@ const Board = () => {
           rowIndex === randomTwoGrid[1][0] &&
           colIndex === randomTwoGrid[1][1]
         ) {
-          //console.log("this is happening");
           return spawnValue[1];
         } else return board[rowIndex][colIndex];
       });
@@ -116,7 +114,6 @@ const Board = () => {
 
   const gameStartState = () => {
     setGameStarted(true);
-    spawnNewValueToBoard();
     drawNewBoardValue(gridInBoard);
   };
 
@@ -222,6 +219,8 @@ const Board = () => {
           shiftRowRight(row);
           return row;
         });
+        console.log("state of grid in board", gridInBoard);
+        console.log("board before spawning new value, shifted", boardCopyRight);
         drawNewBoardValue(boardCopyRight);
         break;
 
@@ -242,6 +241,7 @@ const Board = () => {
 
   useEffect(() => {
     if (gameStarted) {
+      console.log(gridInBoard);
       window.addEventListener("keydown", onArrowKeyDownPressed);
       return () => {
         window.removeEventListener("keydown", onArrowKeyDownPressed);
@@ -249,23 +249,24 @@ const Board = () => {
     }
   }, [gridInBoard]);
 
-  /* Create Board UI */
-  /* 
-     0  0  0  0
-     ----------
-     0  0  0  0
-     ----------
-     0  0  0  0
-     ----------
-     0  0  0  0 
-  */
+  const onNumberChangeStyle = (value: number) => {
+    const linearTransformation: number = Math.log2(value);
+    const colorCode: number = 245 - 15 * linearTransformation;
+    const rgb: string = `rgb(${colorCode}, ${colorCode},${colorCode})`;
+    return rgb;
+  };
+
   const createBoard = () => {
     return (
       <div className={classes.board}>
         {gridInBoard.map((row, i) => (
           <Grid item key={i} className={classes.gridrow}>
             {row.map((column, i) => (
-              <Paper className={classes.paper} key={i + 1}>
+              <Paper
+                className={classes.paper}
+                style={{ backgroundColor: onNumberChangeStyle(column) }}
+                key={i + 1}
+              >
                 <div>{column}</div>
               </Paper>
             ))}
