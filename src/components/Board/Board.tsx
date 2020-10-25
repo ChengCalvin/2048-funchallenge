@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { makeStyles, createStyles, Theme } from "@material-ui/core/styles";
-import { Grid, Paper, Button, rgbToHex } from "@material-ui/core";
+import { Grid, Paper, Button } from "@material-ui/core";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -250,7 +250,7 @@ const Board = () => {
   }, [gridInBoard]);
 
   const onNumberChangeStyle = (value: number) => {
-    const linearTransformation: number = Math.log2(value);
+    const linearTransformation: number = Math.log2(value === 0 ? 1 : value);
     const colorCode: number = 245 - 15 * linearTransformation;
     const rgb: string = `rgb(${colorCode}, ${colorCode},${colorCode})`;
     return rgb;
@@ -265,7 +265,7 @@ const Board = () => {
               <Paper
                 className={classes.paper}
                 style={{ backgroundColor: onNumberChangeStyle(column) }}
-                key={i + 1}
+                key={i}
               >
                 <div>{column}</div>
               </Paper>
@@ -279,7 +279,7 @@ const Board = () => {
   // Display on window
   return (
     <>
-      <p>hello board</p>
+      <p>hello 2048</p>
       <Grid container spacing={0}>
         {createBoard()}
       </Grid>
