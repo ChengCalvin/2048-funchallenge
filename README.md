@@ -1,3 +1,5 @@
+Built a 2048 Clone to practice React Typescript with Material UI styling. Currently spawning 2 tile...
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
