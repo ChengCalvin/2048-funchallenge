@@ -45,11 +45,11 @@ const Board = () => {
   const [gridInBoard, setGridInBoard] = useState<number[][]>(emptyBoard);
 
   const spawnNewValueToBoard = () => {
-    const randomValue = [
-      Math.random() >= 0.5 ? 2 : 4,
-      Math.random() >= 0.5 ? 2 : 4,
-    ];
-
+    // const randomValue = [
+    //   Math.random() >= 0.5 ? 2 : 4,
+    //   Math.random() >= 0.5 ? 2 : 4,
+    // ];
+    const randomValue = Math.random() >= 0.5 ? 2 : 4;
     return randomValue;
   };
 
@@ -62,20 +62,20 @@ const Board = () => {
     ];
     const randomNumber1 = Math.floor(Math.random() * totalEmptyGrid.length);
     const gridOne: number[] = totalEmptyGrid[randomNumber1];
-    const gridOneRemoved: number[][] = totalEmptyGrid
-      .map((rowColPairs) => {
-        return rowColPairs;
-      })
-      .filter((grid) => grid !== gridOne);
+    // const gridOneRemoved: number[][] = totalEmptyGrid
+    //   .map((rowColPairs) => {
+    //     return rowColPairs;
+    //   })
+    //   .filter((grid) => grid !== gridOne);
 
-    const randomNumber2 = Math.floor(Math.random() * gridOneRemoved.length);
-    const gridTwo: number[] = gridOneRemoved[randomNumber2];
+    // const randomNumber2 = Math.floor(Math.random() * gridOneRemoved.length);
+    // const gridTwo: number[] = gridOneRemoved[randomNumber2];
 
-    return [gridOne, gridTwo];
+    return gridOne;
   };
 
   const drawNewBoardValue = (board: number[][]) => {
-    const spawnValue = spawnNewValueToBoard();
+    const spawnValue: number = spawnNewValueToBoard();
 
     const gridRowColValues: number[][][] = board.map((row, rowIndex) => {
       return row
@@ -91,30 +91,25 @@ const Board = () => {
       setGameStarted(false);
     }
 
-    const randomTwoGrid: number[][] = getRandomEmptyGrid(gridRowColValues);
+    const randomTwoGrid: number[] = getRandomEmptyGrid(gridRowColValues);
 
-    const boardCopy: number[][] = board.map((row, rowIndex) => {
+    const finalBoardState: number[][] = board.map((row, rowIndex) => {
       return row.map((_value, colIndex) => {
-        if (
-          rowIndex === randomTwoGrid[0][0] &&
-          colIndex === randomTwoGrid[0][1]
-        ) {
-          return spawnValue[0];
-        } else if (
-          rowIndex === randomTwoGrid[1][0] &&
-          colIndex === randomTwoGrid[1][1]
-        ) {
-          return spawnValue[1];
+        if (rowIndex === randomTwoGrid[0] && colIndex === randomTwoGrid[1]) {
+          return spawnValue;
         } else return board[rowIndex][colIndex];
       });
     });
-
-    setGridInBoard([...boardCopy]);
+    return finalBoardState;
   };
 
   const gameStartState = () => {
     setGameStarted(true);
-    drawNewBoardValue(gridInBoard);
+    const firstNumberSpawnBoard: number[][] = drawNewBoardValue(gridInBoard);
+    const finalBoardState: number[][] = drawNewBoardValue(
+      firstNumberSpawnBoard
+    );
+    setGridInBoard(finalBoardState);
   };
 
   const shiftRowRight = (array: number[]) => {
@@ -204,12 +199,18 @@ const Board = () => {
     switch (event.key) {
       case "ArrowDown":
         const shiftedColumnDown: number[][] = shiftColumnDown(gridInBoard);
-        drawNewBoardValue(shiftedColumnDown);
+        const finalBoardStateDown: number[][] = drawNewBoardValue(
+          shiftedColumnDown
+        );
+        setGridInBoard([...finalBoardStateDown]);
         break;
 
       case "ArrowUp":
         const shiftedColumnUp: number[][] = shiftColumnUp(gridInBoard);
-        drawNewBoardValue(shiftedColumnUp);
+        const finalBoardStateUp: number[][] = drawNewBoardValue(
+          shiftedColumnUp
+        );
+        setGridInBoard([...finalBoardStateUp]);
         break;
 
       case "ArrowRight":
@@ -221,7 +222,10 @@ const Board = () => {
         });
         console.log("state of grid in board", gridInBoard);
         console.log("board before spawning new value, shifted", boardCopyRight);
-        drawNewBoardValue(boardCopyRight);
+        const finalBoardStateRight: number[][] = drawNewBoardValue(
+          boardCopyRight
+        );
+        setGridInBoard([...finalBoardStateRight]);
         break;
 
       case "ArrowLeft":
@@ -231,7 +235,10 @@ const Board = () => {
           shiftRowLeft(row);
           return row;
         });
-        drawNewBoardValue(boardCopyLeft);
+        const finalBoardStateLeft: number[][] = drawNewBoardValue(
+          boardCopyLeft
+        );
+        setGridInBoard([...finalBoardStateLeft]);
         break;
 
       default:
