@@ -1,4 +1,4 @@
-Built a 2048 Clone to practice React Typescript with Material UI styling. Currently spawning 2 tile...
+Built a 2048 Clone to practice React Typescript with Material UI styling. 
 
 __________________________________________________________________________________________________________
 
